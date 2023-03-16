@@ -11,8 +11,8 @@ outdir = arcpy.GetParameterAsText(3)
 cliped = cliped.split(";")
 source_shps = []
 rasters = []
-if(prefix is None):
-    prefix = ''
+# if(prefix is None):
+#     prefix = ''
 
 for item in cliped:
     if('.tif' in item or '.sid' in item or '.ecw' in item):
@@ -21,7 +21,7 @@ for item in cliped:
         source_shps.append(item)
 mxd = arcpy.mapping.MapDocument('current')
 df = arcpy.mapping.ListDataFrames(mxd)[0]
-
+arcpy.AddMessage(shapefile)
 shapefile = arcpy.mapping.ListLayers(
     mxd, shapefile, df)[0]
 
@@ -41,13 +41,18 @@ for raster_name in rasters:
                 " " + str(extent.XMax) + " " + str(extent.YMax)
             arcpy.AddMessage("extent " + extent)
             arcpy.AddMessage("Clipping raster")
-            outraster = osp.join(
-                outdir, prefix + raster_name_without_subfix + '_' + str(clipid)+'_.tif')
+            if(prefix is not None):
+                outraster = osp.join(
+                    outdir, prefix + '_' + str(clipid)+'_.tif')
+            else:
+                outraster = osp.join(
+                    outdir, raster_name_without_subfix + '_' + str(clipid)+'_.tif')
             arcpy.Clip_management(raster,
                                   extent,
                                   outraster, "", "", "", "MAINTAIN_EXTENT")
     # extent = raster.getExtent()
 for shape_name in source_shps:
+    arcpy.AddMessage(shape_name)
     source_shp = arcpy.mapping.ListLayers(
         mxd, shape_name, df)[0]
     shape_name_without_subfix = os.path.splitext(shape_name)[0]
@@ -61,8 +66,12 @@ for shape_name in source_shps:
             # desc = arcpy.mapping.ListLayers(
             #     mxd, "fLayer", df)[0]
             arcpy.AddMessage("Clipping shp")
-            outshp = osp.join(
-                outdir, prefix + shape_name_without_subfix + '_' + str(clipid)+'_.shp')
+            if(prefix is not None):
+                outshp = osp.join(
+                    outdir, prefix + '_' + str(clipid)+'_.shp')
+            else:
+                outshp = osp.join(
+                    outdir, shape_name_without_subfix + '_' + str(clipid)+'_.shp')
             arcpy.analysis.Clip(source_shp,
                                 "fLayer",
                                 outshp)
